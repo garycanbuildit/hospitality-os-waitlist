@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="The Hospitality OS — A waitlist for high-earning coaches who want a business that runs without them.">
+    <meta property="og:title" content="The Hospitality OS">
+    <meta property="og:description"
+        content="The Hospitality OS — A waitlist for high-earning coaches who want a business that runs without them.">
+    <meta property="og:type" content="website">
+    <title>The Hospitality OS</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231a1a2e'/><text y='70' x='50' fill='%23e94560' font-family='sans-serif' font-size='70' font-weight='bold' text-anchor='middle'>H</text></svg>">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,700;1,500&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --color-bg: #1a1a2e;
+            --color-accent: #e94560;
+            --color-highlight: #f5a623;
+            --color-surface: rgba(255, 255, 255, 0.04);
+            --color-surface-hover: rgba(255, 255, 255, 0.08);
+            --color-surface-border: rgba(255, 255, 255, 0.1);
+            --color-text-primary: #f0f0f0;
+            --color-text-muted: #8a8a9a;
+            --font-display: 'Playfair Display', serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        /* Reset & Base base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-text-primary);
+            font-family: var(--font-body);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Scroll Progress Bar */
+        #scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background-color: var(--color-accent);
+            z-index: 9999;
+            transition: width 0.1s ease-out;
+        }
+
+        /* Cursor Glow */
+        #cursor-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(233, 69, 96, 0.15) 0%, rgba(26, 26, 46, 0) 70%);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        @media (pointer: coarse) {
+            #cursor-glow {
+                display: none;
+            }
+        }
+
+        /* Background Effects */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.04;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* Layout & Typography */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 10;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: var(--font-display);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 24px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--color-accent), var(--color-highlight));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 5vw + 1rem, 4.5rem);
+        }
+
+        h2 {
+            font-size: clamp(2rem, 4vw + 1rem, 3.5rem);
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        p {
+            font-size: clamp(1rem, 1.5vw + 0.5rem, 1.25rem);
+            color: var(--color-text-muted);
+            max-width: 700px;
+            margin-bottom: 32px;
+        }
+
+        /* Sections */
+        section {
+            padding: 120px 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            section {
+                padding: 80px 0;
+                min-height: auto;
+            }
+        }
+
+        /* Elements */
+        .glass-card {
+            background: var(--color-surface);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--color-surface-border);
+            border-radius: 16px;
+            padding: 40px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px rgba(233, 69, 96, 0.15);
+            background: var(--color-surface-hover);
+            border-color: rgba(233, 69, 96, 0.3);
+        }
+
+        .btn-shimmer {
+            position: relative;
+            background: var(--color-accent);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            font-family: var(--font-body);
+            border-radius: 8px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-shimmer:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(233, 69, 96, 0.3);
+        }
+
+        .btn-shimmer::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transform: skewX(-20deg);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                left: -100%;
+            }
+
+            20% {
+                left: 200%;
+            }
+
+            100% {
+                left: 200%;
+            }
+        }
+
+        /* Animation utilities */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .stagger-1 {
+            transition-delay: 0.1s;
+        }
+
+        .stagger-2 {
+            transition-delay: 0.2s;
+        }
+
+        .stagger-3 {
+            transition-delay: 0.3s;
+        }
+
+        .stagger-4 {
+            transition-delay: 0.4s;
+        }
+
+        /* Specific section styling */
+        #hero {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        #hero .container {
+            max-width: 900px;
+            margin: 0;
+        }
+
+        .typewriter {
+            display: inline;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 2px;
+            background-color: var(--color-accent);
+            animation: blink 1s step-end infinite;
+            margin-left: 2px;
+            height: 1.2em;
+            vertical-align: text-bottom;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        /* Grid specific */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+            margin-top: 48px;
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 24px;
+            display: block;
+        }
+
+        /* Credibility stats */
+        #credibility {
+            background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.02), transparent);
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 48px;
+            margin-top: 64px;
+            padding-top: 48px;
+            border-top: 1px solid var(--color-surface-border);
+        }
+
+        .stat-item {
+            text-align: center;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .stat-number {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--color-highlight);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .stat-label {
+            color: var(--color-text-primary);
+            font-weight: 500;
+            font-size: 1.125rem;
+        }
+
+        /* Scarcity */
+        #scarcity {
+            text-align: center;
+        }
+
+        #scarcity .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .scarcity-circles {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            margin-top: 48px;
+            flex-wrap: wrap;
+        }
+
+        .circle-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.5s ease;
+        }
+
+        .circle.taken {
+            background-color: rgba(233, 69, 96, 0.2);
+            border: 2px solid var(--color-accent);
+            box-shadow: inset 0 0 20px rgba(233, 69, 96, 0.5);
+        }
+
+        .circle.open {
+            border: 2px dashed var(--color-text-muted);
+            background: transparent;
+        }
+
+        .circle-label {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--color-text-muted);
+        }
+
+        .circle.taken+.circle-label {
+            color: var(--color-accent);
+        }
+
+        /* Waitlist Form */
+        #waitlist {
+            position: relative;
+        }
+
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            margin-top: 40px;
+            text-align: left;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--color-text-primary);
+        }
+
+        input {
+            width: 100%;
+            background: var(--color-surface);
+            border: 1px solid var(--color-surface-border);
+            color: var(--color-text-primary);
+            padding: 16px;
+            border-radius: 8px;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        input::placeholder {
+            color: var(--color-text-muted);
+        }
+
+        form button {
+            margin-top: 16px;
+            width: 100%;
+        }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        #form-message {
+            margin-top: 24px;
+            padding: 16px;
+            border-radius: 8px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .success-msg {
+            background: rgba(245, 166, 35, 0.1);
+            color: var(--color-highlight);
+            border: 1px solid rgba(245, 166, 35, 0.3);
+            display: block;
+        }
+
+        .error-msg {
+            background: rgba(233, 69, 96, 0.1);
+            color: var(--color-accent);
+            border: 1px solid rgba(233, 69, 96, 0.3);
+            display: block;
+        }
+
+        /* Footer */
+        footer {
+            padding: 48px 0;
+            border-top: 1px solid var(--color-surface-border);
+            text-align: center;
+        }
+
+        footer p {
+            margin: 0 auto 16px;
+            font-size: 0.875rem;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .social-links a {
+            color: var(--color-text-muted);
+            text-decoration: none;
+            transition: color 0.3s ease;
+            font-size: 0.875rem;
+        }
+
+        .social-links a:hover {
+            color: var(--color-accent);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="scroll-progress"></div>
+    <div id="cursor-glow"></div>
+    <canvas id="bg-canvas"></canvas>
+    <div class="noise-overlay"></div>
+
+    <main>
+        <!-- HERO SECTION -->
+        <section id="hero" aria-label="Hero">
+            <div class="container">
+                <h1 class="fade-in gradient-text stagger-1">Your Business Should Run Like A 5-Star Restaurant. Right Now
+                    It's Running You.</h1>
+                <p class="fade-in stagger-2" style="min-height: 80px;">
+                    <span id="typewriter-text" class="typewriter"></span><span class="cursor"></span>
+                </p>
+                <div class="fade-in stagger-3">
+                    <a href="#waitlist" class="btn-shimmer">Join The Waitlist</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAIN SECTION -->
+        <section id="pain" aria-label="Pain Points">
+            <div class="container">
+                <h2 class="fade-in gradient-text">Sound Familiar?</h2>
+                <div class="cards-grid">
+                    <div class="glass-card fade-in stagger-1">
+                        <span class="card-icon">🔥</span>
+                        <p style="margin:0; color: var(--color-text-primary)">You wake up every morning feeling like
+                            everything is on fire</p>
+                    </div>
+                    <div class="glass-card fade-in stagger-2">
+                        <span class="card-icon">⏳</span>
+                        <p style="margin:0; color: var(--color-text-primary)">You're making good money but you have no
+                            time to enjoy it</p>
+                    </div>
+                    <div class="glass-card fade-in stagger-3">
+                        <span class="card-icon">🔄</span>
+                        <p style="margin:0; color: var(--color-text-primary)">You've tried hiring a VA and working
+                            longer hours. Nothing moved the needle.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CREDIBILITY SECTION -->
+        <section id="credibility" aria-label="Story and Credibility">
+            <div class="container">
+                <h2 class="fade-in gradient-text">I've Been Where You Are</h2>
+                <p class="fade-in stagger-1" style="max-width: 900px; margin: 0 auto; text-align: center;">
+                    I spent 22 years in hospitality learning one thing — the difference between a business people love
+                    and one they forget is how it makes them feel. I took those principles, built an appliance repair
+                    company from scratch in Houston, got 35 five-star reviews, automated the entire operation, and now
+                    I'm building my next business from a coffee shop in Da Nang, Vietnam. The system works. Now I'm
+                    teaching it to coaches.
+                </p>
+                <div class="stats-row">
+                    <div class="stat-item fade-in stagger-2">
+                        <span class="stat-number" data-target="22">0</span>
+                        <span class="stat-label">Years in Hospitality</span>
+                    </div>
+                    <div class="stat-item fade-in stagger-3">
+                        <span class="stat-number" data-target="35">0</span>
+                        <span class="stat-label">Five-Star Reviews</span>
+                    </div>
+                    <div class="stat-item fade-in stagger-4">
+                        <span class="stat-number" data-target="5">0</span>
+                        <span class="stat-label">Clients Max, Always</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FEATURES SECTION -->
+        <section id="features" aria-label="Features">
+            <div class="container">
+                <h2 class="fade-in gradient-text">The Hospitality OS</h2>
+                <div class="cards-grid">
+                    <div class="glass-card fade-in stagger-1">
+                        <span class="card-icon">📡</span>
+                        <h4 style="margin-bottom: 12px; font-size: 1.25rem; font-family: var(--font-body)">Communication
+                            Systems</h4>
+                        <p style="margin:0; font-size: 1rem;">Never miss a lead again. Auto-responders that feel human,
+                            not robotic.</p>
+                    </div>
+                    <div class="glass-card fade-in stagger-2">
+                        <span class="card-icon">⚙️</span>
+                        <h4 style="margin-bottom: 12px; font-size: 1.25rem; font-family: var(--font-body)">Client
+                            Experience Automation</h4>
+                        <p style="margin:0; font-size: 1rem;">Make every client feel like your only client, without
+                            lifting a finger.</p>
+                    </div>
+                    <div class="glass-card fade-in stagger-3">
+                        <span class="card-icon">🌅</span>
+                        <h4 style="margin-bottom: 12px; font-size: 1.25rem; font-family: var(--font-body)">The Morning
+                            Dashboard</h4>
+                        <p style="margin:0; font-size: 1rem;">Wake up, check one screen, know exactly what needs you
+                            today. Nothing else.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCARCITY SECTION -->
+        <section id="scarcity" aria-label="Scarcity Model">
+            <div class="container">
+                <h2 class="fade-in gradient-text">I Only Work With 5 Clients At A Time</h2>
+                <p class="fade-in stagger-1">This isn't marketing. It's how I protect the quality of my work and your
+                    results. Join the waitlist and you'll be the first to know when a spot opens.</p>
+
+                <div class="scarcity-circles">
+                    <div class="circle-wrapper fade-in stagger-1">
+                        <div class="circle taken"></div>
+                        <span class="circle-label">Taken</span>
+                    </div>
+                    <div class="circle-wrapper fade-in stagger-2">
+                        <div class="circle taken"></div>
+                        <span class="circle-label">Taken</span>
+                    </div>
+                    <div class="circle-wrapper fade-in stagger-3">
+                        <div class="circle taken"></div>
+                        <span class="circle-label">Taken</span>
+                    </div>
+                    <div class="circle-wrapper fade-in stagger-4">
+                        <div class="circle open"></div>
+                        <span class="circle-label">Open</span>
+                    </div>
+                    <div class="circle-wrapper fade-in stagger-4">
+                        <div class="circle open"></div>
+                        <span class="circle-label">Open</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- WAITLIST SECTION -->
+        <section id="waitlist" aria-label="Waitlist Form">
+            <div class="container">
+                <div class="form-container glass-card fade-in">
+                    <h2 class="gradient-text" style="text-align: left; margin-bottom: 16px;">Join The Waitlist</h2>
+                    <p style="text-align: left;">No spam. No pressure. Just a notification when a spot opens.</p>
+
+                    <div id="form-message"></div>
+
+                    <form id="waitlist-form">
+                        <div class="input-group">
+                            <label for="firstName">First Name</label>
+                            <input type="text" id="firstName" name="firstName" required placeholder="John">
+                        </div>
+                        <div class="input-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" required placeholder="john@example.com">
+                        </div>
+                        <button type="submit" class="btn-shimmer" id="submit-btn">
+                            <span class="btn-text">Claim My Spot On The Waitlist</span>
+                            <div class="spinner"></div>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>The Hospitality OS &copy; 2025</p>
+            <div class="social-links">
+                <a href="#">Instagram</a>
+                <a href="#">Threads</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- 1. CONFIGURATION ---
+        // TODO: Replace this URL with your deployed Google Apps Script Web App URL
+        const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+
+        // --- 2. SCROLL PROGRESS BAR ---
+        const scrollProgress = document.getElementById('scroll-progress');
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.scrollY;
+            const docHeight = document.body.offsetHeight;
+            const winHeight = window.innerHeight;
+            const scrollPercent = scrollTop / (docHeight - winHeight);
+            scrollProgress.style.width = Math.min(scrollPercent * 100, 100) + "%";
+        });
+
+        // --- 3. CURSOR GLOW (Desktop) ---
+        const cursorGlow = document.getElementById('cursor-glow');
+        let isMouseMoving = false;
+
+        document.addEventListener('mousemove', (e) => {
+            isMouseMoving = true;
+            cursorGlow.style.opacity = '1';
+            cursorGlow.style.left = e.clientX + 'px';
+            cursorGlow.style.top = e.clientY + 'px';
+        });
+
+        document.addEventListener('mouseleave', () => {
+            cursorGlow.style.opacity = '0';
+        });
+
+        // --- 4. CANVAS PARTICLE BACKGROUND ---
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particlesArray = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 1;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.speedY = Math.random() * 0.5 - 0.25;
+                // Mix of muted gold and red tones
+                const colors = ['rgba(233, 69, 96, 0.4)', 'rgba(245, 166, 35, 0.4)', 'rgba(255, 255, 255, 0.1)'];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
+                if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            let numParticles = (canvas.width * canvas.height) / 10000;
+            if (numParticles > 150) numParticles = 150;
+            for (let i = 0; i < numParticles; i++) {
+                particlesArray.push(new Particle());
+            }
+        }
+
+        function handleParticles() {
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+                particlesArray[i].draw();
+                for (let j = i; j < particlesArray.length; j++) {
+                    const dx = particlesArray[i].x - particlesArray[j].x;
+                    const dy = particlesArray[i].y - particlesArray[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < 100) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(255,255,255,${0.05 - distance / 2000})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(particlesArray[i].x, particlesArray[i].y);
+                        ctx.lineTo(particlesArray[j].x, particlesArray[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            handleParticles();
+            requestAnimationFrame(animateCanvas);
+        }
+
+        initParticles();
+        animateCanvas();
+
+        window.addEventListener('resize', () => {
+            initParticles();
+        });
+
+        // --- 5. TYPEWRITER EFFECT ---
+        const typewriterText = "I help high-earning coaches remove themselves as the bottleneck using hospitality principles and simple automations — so they can work 4 hours a day and actually live the life they built the business for.";
+        const typeEl = document.getElementById('typewriter-text');
+        const cursor = document.querySelector('.cursor');
+        let typeIndex = 0;
+
+        function type() {
+            if (typeIndex < typewriterText.length) {
+                typeEl.innerHTML += typewriterText.charAt(typeIndex);
+                typeIndex++;
+                setTimeout(type, 30); // Speed of typing
+            } else {
+                // blinking cursor remains naturally
+            }
+        }
+
+        // Start typing shortly after load
+        setTimeout(type, 800);
+
+        // --- 6. SCROLL FADE-IN (Intersection Observer) ---
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.15
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    // If it's the credibility stats section, start counter
+                    if (entry.target.id === 'credibility') {
+                        startCounters();
+                    }
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Observe entire sections for specific triggers (like the counters)
+        document.querySelectorAll('section').forEach(el => observer.observe(el));
+
+        // --- 7. STAT COUNTERS ---
+        let countersStarted = false;
+        function startCounters() {
+            if (countersStarted) return;
+            countersStarted = true;
+
+            const counters = document.querySelectorAll('.stat-number');
+            const speed = 2000; // Duration in ms
+
+            counters.forEach(counter => {
+                const target = +counter.getAttribute('data-target');
+                const startTime = performance.now();
+
+                function updateCounter(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / speed, 1);
+
+                    // Ease out quart
+                    const easeOut = 1 - Math.pow(1 - progress, 4);
+
+                    const currentVal = Math.floor(easeOut * target);
+                    counter.innerText = currentVal;
+
+                    if (progress < 1) {
+                        requestAnimationFrame(updateCounter);
+                    } else {
+                        counter.innerText = target;
+                    }
+                }
+
+                requestAnimationFrame(updateCounter);
+            });
+        }
+
+        // --- 8. FORM SUBMISSION ---
+        const form = document.getElementById('waitlist-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const btnText = submitBtn.querySelector('.btn-text');
+        const spinner = submitBtn.querySelector('.spinner');
+        const msgBox = document.getElementById('form-message');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Basic validation
+            const firstName = document.getElementById('firstName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (!firstName || !emailRegex.test(email)) {
+                showMessage("Please ensure all fields are filled properly.", false);
+                return;
+            }
+
+            // Loading state
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            spinner.style.display = 'block';
+            msgBox.style.display = 'none';
+
+            msgBox.className = '';
+
+            // Using URLSearchParams to send as application/x-www-form-urlencoded
+            // which avoids CORS preflight issues with Google Apps Script
+            const formData = new FormData(form);
+            const searchParams = new URLSearchParams(formData);
+
+            try {
+                if (SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+                    throw new Error("Looks like you haven't added the Google Apps Script URL yet.");
+                }
+
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: searchParams
+                });
+
+                // Success state
+                form.style.display = 'none';
+                showMessage("You're on the list. I'll be in touch when a spot opens. In the meantime, follow along on Instagram and Threads.", true);
+
+            } catch (error) {
+                // Error state
+                showMessage(error.message || "Something went wrong. Please try again.", false);
+                // Reset button
+                submitBtn.disabled = false;
+                btnText.style.display = 'inline';
+                spinner.style.display = 'none';
+            }
+        });
+
+        function showMessage(text, isSuccess) {
+            msgBox.innerText = text;
+            msgBox.className = isSuccess ? 'success-msg' : 'error-msg';
+            msgBox.style.display = 'block';
+        }
+    </script>
+</body>
+
+</html>
